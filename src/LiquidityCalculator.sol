@@ -2,6 +2,10 @@
 pragma solidity ^0.8.13;
 
 import "v4-core/interfaces/IPoolManager.sol";
+import "v4-core/libraries/FullMath.sol";
+import "v4-core/libraries/FixedPoint96.sol";
+import "v4-core/libraries/TickMath.sol";
+import "v4-core/libraries/SqrtPriceMath.sol";
 import "periphery-next/libraries/LiquidityAmounts.sol";
 
 contract LiquidityCalculator {
@@ -40,5 +44,15 @@ contract LiquidityCalculator {
             y = (z + x / z) / 2;
         }
         return z;
+    }
+
+
+
+    uint256 constant public Q96 = 2**96;
+
+    function calculateTick(uint256 priceRatio, int24 fee) external pure returns (int24 tick) {
+        int256 lnPriceRatio = int256(priceRatio) * int256(Q96) * 2 / int256(Q96); // Convert price ratio to logarithmic scale
+        int256 tickSpacing = int256(160) - int256(fee) * int256(32); // Calculate tick spacing based on fee level
+        tick = int24(lnPriceRatio / tickSpacing); // Calculate the tick position
     }
 }
